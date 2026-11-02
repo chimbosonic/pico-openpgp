@@ -196,3 +196,8 @@ if(NOT ESP_PLATFORM)
         pico_add_extra_outputs(${CMAKE_PROJECT_NAME})
     endif()
 endif()
+
+# Out-of-tree board extensions (e.g. the Tufty 2350 display UI).
+if(DEFINED PICO_OPENPGP_EXTRA_CMAKE)
+    include(${PICO_OPENPGP_EXTRA_CMAKE})
+endif()
