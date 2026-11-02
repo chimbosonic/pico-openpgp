@@ -459,6 +459,21 @@ void scan_files_openpgp(void) {
             file_put_data(ef, CONST_BYTE_ARRAY(file_get_data(ef), 7));
         }
 #endif
+        if (reset_dek && file_has_data(ef) && file_get_size(ef) >= 7 && file_get_size(ef) <= 64) {
+            /* Re-provisioning after TERMINATE DF. The status file survives
+               termination because PIV keeps its counters in bytes 7+, so put
+               the OpenPGP part back to factory values: otherwise PINs blocked
+               before the reset (gpg's factory-reset does this on purpose) stay
+               blocked with nothing left to unblock them. */
+            uint8_t status[64];
+            uint16_t status_len = file_get_size(ef);
+            memcpy(status, file_get_data(ef), status_len);
+            status[0] = 0x1;  // PW1 valid for several signatures
+            status[4] = 3;    // PW1 retries
+            status[5] = 0;    // reset code: none set
+            status[6] = 3;    // PW3 retries
+            file_put_data(ef, CONST_BYTE_ARRAY(status, status_len));
+        }
     }
     restore_pw_status_limits();
     file_t *rc = file_search_by_fid(EF_RC, NULL, SPECIFY_EF);
